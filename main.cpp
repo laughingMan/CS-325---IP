@@ -24,7 +24,7 @@ void checkChar(ofstream &out_stream, string fileString, char fileChar, ifstream&
 void locCounter(string fileString, char fileChar, int &locCount, Counter &loc);
 void checkDepth(Counter &braces, int &locCount);
 void methodLength(Counter &braces, Counter &loc, int &locCount);
-void checkMagic(ofstream &out_stream, Counter &parenthesis, int &locCount);
+void checkMagic(Counter &parenthesis, int &locCount);
 
 // Global Items
 const string OUTPUT_FILE = "IP03_output.txt";
@@ -97,7 +97,7 @@ void loadFile(ofstream &out_stream, string token, int &locCount)
 		checkChar(out_stream, fileString, fileChar, inputFile, locCount, parenthesis, braces, loc);
 		checkDepth(braces, locCount);
 		methodLength(braces, loc, locCount);
-		checkMagic(out_stream, parenthesis, locCount);
+		checkMagic(parenthesis, locCount);
 	}
 }
 		
@@ -284,7 +284,7 @@ void methodLength(Counter &braces, Counter &loc, int &locCount)
     if(braces.Count() == 1)
 		loc.SetFlag(1);
     
-	if(braces.Count() != 1)
+	if(braces.Count() > 1)
 		loc.SetFlag(0);
 
 	if(loc.Temp() != 1 && loc.Count() > MAX_LOC)
@@ -297,7 +297,7 @@ void methodLength(Counter &braces, Counter &loc, int &locCount)
 		loc.Reset();
 }
 
-void checkMagic(ofstream &out_stream, Counter &parenthesis, int &locCount)
+void checkMagic(Counter &parenthesis, int &locCount)
 {
 	if (parenthesis.Count() == 1) 
     {
