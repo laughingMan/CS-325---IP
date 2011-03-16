@@ -46,14 +46,14 @@ int main()
 	string token;
 	int locCount = 0;
 	ofstream out_stream;
-
+    
 	out_stream.open(OUTPUT_FILE);
 	if (out_stream.fail())
 	{
 		cout << "Output file opening failed.\n";
 		exit(1);
 	}
-
+    
 	loadFile(out_stream, token, locCount);
 	out_stream << endl << "Total LOC: " << locCount << endl << endl;
 	system("pause");
@@ -63,30 +63,30 @@ void loadFile(ofstream &out_stream, string token, int &locCount)
 {
 	char fileChar; 
 	string fileString;
-	string fileName;
+	string inputFileName;
 	ifstream inputFile;
 	inputFile.unsetf(ios_base::skipws);
 	Counter parenthesis;
 	Counter braces;
 	Counter loc;
-
-	// Prompt user for input file's name
+    
+	// prompt user for input file's name
 	cout << "Please enter the file name to be processed" << endl;
-	cin >> fileName;
-
-	inputFile.open(fileName);
+	cin >> inputFileName;
+    
+	inputFile.open(inputFileName);
 	if(inputFile.fail())
 	{
 		cout << "Input file opening failed.\n";
 		exit(1);
 	}
-
+    
 	while(!inputFile.eof())
 	{
 		fileString.clear();
 		fileChar = NULL;
 		inputFile >> fileChar;
-
+        
 		while(isalnum(fileChar) || fileChar == '.')
 		{
 			fileString += fileChar;
@@ -100,7 +100,7 @@ void loadFile(ofstream &out_stream, string token, int &locCount)
 		checkMagic(parenthesis, locCount);
 	}
 }
-		
+
 void checkString(ofstream &out_stream, string fileString, char fileChar, int &locCount, Counter &loc, Counter &parenthesis)
 {
 	bool found = false;
@@ -108,7 +108,7 @@ void checkString(ofstream &out_stream, string fileString, char fileChar, int &lo
 	// if string is empty
 	if(fileString == "")
 		return;
-
+    
 	// check against RESERVED array
 	for(int i = 0; i < 25; i++)
 	{
@@ -119,7 +119,7 @@ void checkString(ofstream &out_stream, string fileString, char fileChar, int &lo
 			locCounter(fileString, fileChar, locCount, loc);
 		}
 	}
-
+    
 	// check against PREDEFINED array
 	for(int i = 0; i < 6; i++)
 	{
@@ -129,7 +129,7 @@ void checkString(ofstream &out_stream, string fileString, char fileChar, int &lo
 			found = true;
 		}
 	}
-
+    
 	// defaults to IDENTIFIER
 	if(!found)
 	{
@@ -145,16 +145,16 @@ void checkChar(ofstream &out_stream, string fileString, char fileChar, ifstream&
 	
 	// check against OPERATORS array
 	for(int i = 0; i < 16; i++)
-		{
-			if(OPERATORS[i] == extraString)
-			{
-				extraString = fileChar;
-				inputFile >> fileChar;
-				if(fileChar != ' ')
-					extraString += fileChar;;
-				out_stream << "OPERATOR" << "          " << extraString << endl;
-			}
-		}
+    {
+        if(OPERATORS[i] == extraString)
+        {
+            extraString = fileChar;
+            inputFile >> fileChar;
+            if(fileChar != ' ')
+                extraString += fileChar;;
+            out_stream << "OPERATOR" << "          " << extraString << endl;
+        }
+    }
 	
 	// checks for COMMMENTS
 	if(fileChar == '/')
@@ -166,7 +166,7 @@ void checkChar(ofstream &out_stream, string fileString, char fileChar, ifstream&
 		}
 		out_stream << "COMMENTS" << "          " << extraString << endl;
 	}
-
+    
 	// checks for META
 	else if(fileChar == '#')
 	{
@@ -178,13 +178,13 @@ void checkChar(ofstream &out_stream, string fileString, char fileChar, ifstream&
 		out_stream << "META" << "              " << extraString << endl;
 		locCounter(fileString, '#', locCount, loc);
 	}
-
+    
 	// checks for CONST_STR
 	else if(fileChar == '"')
 	{
 		extraString += fileChar;
 		inputFile >> fileChar;
-
+        
 		while(fileChar != '"')
 		{
 			extraString += fileChar;
@@ -195,25 +195,25 @@ void checkChar(ofstream &out_stream, string fileString, char fileChar, ifstream&
 		parenthesis.SetFlag(2);
 		out_stream << "CONST_STR" << "         " << extraString << endl;
 	}
-
+    
 	else if(fileChar == '(')
 	{
 		parenthesis.Add();
 		out_stream << "PAREN_LFT" << "         " << fileChar << endl;
 	}
-
+    
 	else if(fileChar == ')')
 	{
 		parenthesis.Sub();
 		out_stream << "PAREN_RGT" << "         " << fileChar << endl;
 	}
-
+    
 	else if(fileChar == '{')
 	{
 		braces.Add();
 		out_stream << "PAREN_LFT" << "         " << fileChar << endl;
 	}
-
+    
 	else if(fileChar == '}')
 	{
 		braces.Sub();
@@ -225,7 +225,7 @@ void checkChar(ofstream &out_stream, string fileString, char fileChar, ifstream&
 		out_stream << "SEMI" << "              " << fileChar << endl;
 		locCounter(fileString, fileChar, locCount, loc);
 	}
-
+    
 	else 
 		return;
 }
@@ -235,7 +235,7 @@ void locCounter(string fileString, char fileChar, int &locCount, Counter &loc)
 	// empty LOC
 	if(fileString == " " && fileChar == ';')
 		return;
-
+    
 	// corrects for "for loop" meyhem
 	if(fileString == "for")
 	{
@@ -244,7 +244,7 @@ void locCounter(string fileString, char fileChar, int &locCount, Counter &loc)
 			loc.Sub(2);
 		return;
 	}
-
+    
 	// regular LOC or Meta/ Directive
 	if(fileChar == ';' || fileChar == '#')
 	{
@@ -253,7 +253,7 @@ void locCounter(string fileString, char fileChar, int &locCount, Counter &loc)
 			loc.Add();
 		return;
 	}
-
+    
 	// loops
 	if(fileString == "if" || fileString  == "while" || fileString == "switch")
 	{
@@ -271,9 +271,9 @@ void checkDepth(Counter &braces, int &locCount)
 		// allows for the error to only be output once
 		braces.SetFlag(2);
 		cout << "The code complexity standard of nested items (" << MAX_DEPTH 
-			 << " deep) has been exceeded at line (" << locCount << ").\n";
+        << " deep) has been exceeded at line (" << locCount << ").\n";
 	}
-
+    
 	// resets the counter and flag
 	if(braces.Count() == 0)
 		braces.Reset();
@@ -281,18 +281,22 @@ void checkDepth(Counter &braces, int &locCount)
 
 void methodLength(Counter &braces, Counter &loc, int &locCount)
 {
+    // starts counting while in first level
     if(braces.Count() == 1)
 		loc.SetFlag(1);
     
+    // stops counting while deeper than one level
 	if(braces.Count() > 1)
 		loc.SetFlag(0);
-
+    
+    // flag is so the message only prints once
 	if(loc.Temp() != 1 && loc.Count() > MAX_LOC)
 	{
 		cout << "The max method length was exceded at line (" << locCount << ")." << endl;
 		loc.SetTemp(1);
 	}
-
+    
+    // resets the loc counter
 	if(braces.Count() == 0)
 		loc.Reset();
 }
@@ -301,14 +305,15 @@ void checkMagic(Counter &parenthesis, int &locCount)
 {
 	if (parenthesis.Count() == 1) 
     {
-		// Flag bool true(2) == string
+		// flag bool true(2) == string
         if(parenthesis.Flag() == 2)
             cout << "A magic string was found at line (" << locCount << ")." << endl;
         
-		// Flag bool false(1) == number
+		// flag bool false(1) == number
         if(parenthesis.Flag() == 1)
             cout << "A magic number was found at line (" << locCount << ")." << endl;
-
+        
+        // resets the flag
 		parenthesis.SetFlag(0);
     }
 }
