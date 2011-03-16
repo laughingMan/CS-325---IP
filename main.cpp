@@ -1,12 +1,13 @@
 //-------------------------------------------------------------------------------------- 
-//   File: main.cpp
-//   Name: Isaac Hatton
-// Course: CS 325 - Software Engineering
-//   Desc: Program accepts a file name as input and produces a token class and value 
-// 		for output
-//  Usage: The program will require the user to provide a (source code) file. Running
-// 		the program will produce a tokenized output for the user.
-//  Other files required: token.cpp, token.h
+//  main.cpp
+//  IP02
+//  Program is a lexicographical analzier plus a LOC counter
+//
+//  Created by Isaac Hatton on 2/6/11.
+//  Copyright 2011 sublimeIke LLC. All rights reserved.
+//
+//  EXECUTIVE DECISION: I'm going to count "for loops" and 
+//      "else if statements" as LOC, but not "else lines"
 //-------------------------------------------------------------------------------------- 
 
 #include <iostream>
@@ -16,9 +17,10 @@
 using namespace std;
 
 // Functions
-void loadFile(string tokens);
-void checkString(string fileString);
-void checkChar(char fileChar, ifstream& inputFile);
+void loadFile(ofstream &out_stream, string tokens, int &locCount);
+void checkString(ofstream &out_stream, string fileString, char fileChar, int &locCount);
+void checkChar(ofstream &out_stream, string fileString, char fileChar, ifstream& inputFile, int &locCount);
+void locCounter(string fileString, char fileChar, int &locCount);
 
 // Global Arrays
 const string reserved[] = {"const", "double", "float", "int", "short", "struct", "continue",
@@ -33,18 +35,31 @@ const string operators[] = {"+", "-", "=", "==", "--", "++", "<", ">", "<=", ">=
 int main()
 {	
 	string token;
+	int locCount = 0;
+	ofstream out_stream;
 
-	loadFile(token);
+	out_stream.open("circoutput.txt");
+	if (out_stream.fail())
+	{
+		cout << "Output file opening failed.\n";
+		exit(1);
+	}
+
+	loadFile(out_stream, token, locCount);
+	out_stream << endl << "Total LOC: " << locCount << endl << endl;
 	system("pause");
 }
 
-void loadFile(string token)
+void loadFile(ofstream &out_stream, string token, int &locCount)
 {
 	char fileChar; 
 	string fileString;
 	ifstream inputFile;
 	inputFile.unsetf(ios_base::skipws);
-			
+
+		
+
+
 	inputFile.open("input.txt");
 	if(inputFile.fail())
 	{
@@ -63,13 +78,13 @@ void loadFile(string token)
 			fileString += fileChar;
 			inputFile >> fileChar;
 		}
-
-		checkString(fileString);
-		checkChar(fileChar, inputFile);
+		
+		checkString(out_stream, fileString, fileChar, locCount);
+		checkChar(out_stream, fileString, fileChar, inputFile, locCount);
 	}
 }
 		
-void checkString(string fileString)
+void checkString(ofstream &out_stream, string fileString, char fileChar, int &locCount)
 {
 	bool found = false;
 	
@@ -82,8 +97,9 @@ void checkString(string fileString)
 	{
 		if(reserved[i] == fileString)
 		{
-			cout << "RESERVED" << "          " << fileString << endl;
+			out_stream << "RESERVED" << "          " << fileString << endl;
 			found = true;
+			locCounter(fileString, fileChar, locCount);
 		}
 	}
 
@@ -92,17 +108,17 @@ void checkString(string fileString)
 	{
 		if(predefined[i] == fileString)
 		{
-			cout << "PREDEFINED" << "        " << fileString << endl;
+			out_stream << "PREDEFINED" << "        " << fileString << endl;
 			found = true;
 		}
 	}
 
 	// defaults to IDENTIFIER
 	if(!found)
-	cout << "IDENTIFIER" << "        " << fileString << endl;
+	out_stream << "IDENTIFIER" << "        " << fileString << endl;
 }
 
-void checkChar(char fileChar, ifstream& inputFile)
+void checkChar(ofstream &out_stream, string fileString, char fileChar, ifstream& inputFile, int &locCount)
 {
 	string extraString;
 	
@@ -115,7 +131,7 @@ void checkChar(char fileChar, ifstream& inputFile)
 				inputFile >> fileChar;
 				if(fileChar != ' ')
 					extraString += fileChar;;
-				cout << "OPERATOR" << "          " << extraString << endl;
+				out_stream << "OPERATOR" << "          " << extraString << endl;
 			}
 		}
 	
@@ -127,7 +143,7 @@ void checkChar(char fileChar, ifstream& inputFile)
 			extraString += fileChar;
 			inputFile >> fileChar;
 		}
-		cout << "COMMENTS" << "          " << extraString << endl;
+		out_stream << "COMMENTS" << "          " << extraString << endl;
 	}
 
 	// checks for META
@@ -138,7 +154,8 @@ void checkChar(char fileChar, ifstream& inputFile)
 			extraString += fileChar;
 			inputFile >> fileChar;
 		}
-		cout << "META" << "              " << extraString << endl;
+		out_stream << "META" << "              " << extraString << endl;
+		locCounter(fileString, '#', locCount);
 	}
 
 	// checks for CONST_STR
@@ -153,24 +170,55 @@ void checkChar(char fileChar, ifstream& inputFile)
 			inputFile >> fileChar;
 		}
 		extraString += fileChar;
-		cout << "CONST_STR" << "         " << extraString << endl;
+		out_stream << "CONST_STR" << "         " << extraString << endl;
 	}
 
 	else if(fileChar == '(')
-		cout << "PAREN_LFT" << "         " << fileChar << endl;
+		out_stream << "PAREN_LFT" << "         " << fileChar << endl;
 
 	else if(fileChar == ')')
-		cout << "PAREN_RGT" << "         " << fileChar << endl;
+		out_stream << "PAREN_RGT" << "         " << fileChar << endl;
 
 	else if(fileChar == '{')
-		cout << "PAREN_LFT" << "         " << fileChar << endl;
+		out_stream << "PAREN_LFT" << "         " << fileChar << endl;
 
 	else if(fileChar == '}')
-		cout << "PAREN_RGT" << "         " << fileChar << endl;
+		out_stream << "PAREN_RGT" << "         " << fileChar << endl;
 	
 	else if(fileChar == ';')
-		cout << "SEMI" << "              " << fileChar << endl;
+	{
+		out_stream << "SEMI" << "              " << fileChar << endl;
+		locCounter(fileString, fileChar, locCount);
+	}
 
 	else 
 		return;
+}
+
+void locCounter(string fileString, char fileChar, int &locCount)
+{
+	// empty LOC
+	if(fileString == " " && fileChar == ';')
+		return;
+
+	// corrects for "for loop" meyhem
+	if(fileString == "for")
+	{
+		locCount -= 2;
+		return;
+	}
+
+	// regular LOC or Meta/ Directive
+	if(fileChar == ';' || fileChar == '#')
+	{
+		locCount++;
+		return;
+	}
+
+	// loops
+	if(fileString == "if" || fileString  == "while" || fileString == "switch")
+	{
+			locCount++;
+			return;
+	}
 }
